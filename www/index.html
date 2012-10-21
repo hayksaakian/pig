@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" />
+        <!-- Le styles -->
+        <link href="css/bootstrap.css" rel="stylesheet">
+        <link href="css/bootstrap-responsive.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="css/styles.css" />
+        
+        <title>Pig with Websockets</title>
+    </head>
+    <body>
+
+    <div id="main" role="main">
+      <div class="container-fluid">
+        <div class="content" style="min-height: 480; max-width: 940px;">
+          <div class="navbar">
+            <nav class="navbar-inner">
+              <div class="container" id="nav_container">
+                <button class="brand btn btn-link shw" id="show_home">Pig with Websockets</button>
+                <!-- <button class="btn btn-success">Play</button> -->     
+                <div class="navbar-text pull-right" id="status">My Turn</div>
+              </div>
+            </nav>
+          </div>
+          <div id="home_view" class="row-fluid vw">
+            <p class="lead">
+              Two Dice Pig. <br> This variation is the same as Pig, except:
+              <ul>
+                <li>Two standard dice are rolled. If neither shows a 1, their sum is added to the turn total.</li>
+                <li>If a 1 is rolled, the player scores nothing and the turn ends.</li>
+              </ul>
+            </p>
+              <button id="show_game" type="button" class="btn btn-large btn-block btn-primary shw">Play vs AI</button>
+<!--               <button type="button" class="btn btn-large btn-block">Ladder</button>
+              <button type="button" class="btn btn-large btn-block">Account</button> -->            
+          </div>
+          <div id="game_view" class="row-fluid vw" hidden="true">
+            <p>
+              My Points: <span id="my_total"></span>
+              Opponent's Points: <span id="opponents_points"></span></p>
+            <p>Rolled <span id='roll_result'></span></p>
+            <div id="dice_view_template">
+              <div class="well well-mini">
+                <h1 style="text-align: center;">
+                  <span style="font-size: 220px;">
+                    <span id="die1">&#9862;</span><span id="die2">&#9864;</span>
+                  </span>
+                </h1>
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-success btn-large btn-block" id="do_roll">Roll</button>
+              <button class="btn btn-danger btn-large btn-block" id="do_hold">Hold</button>
+            </div>
+            <div class="span4">
+              <p>
+                <strong><span class="brand" id="turn_total_sum"></span></strong>
+                <span class="brand" id="turn_total_parts"></span>
+              </p>
+            </div>
+          </div>
+          <div id="articles_view" class="row-fluid vw" hidden="true">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </body>
+
+    <script type="text/javascript" src="cordova-2.0.0.js"></script>  
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/lawnchair.js"></script>
+    <!-- 
+    IndexedDB is still slow, avoid for now...
+    <script type="text/javascript" src="js/lawnchair-adapter-indexed-db.js"></script>
+    -->
+    <script type="text/javascript" src="js/lawnchair-adapter-webkit-sqlite.js"></script>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript" src="start.js">
+      app.initialize();
+    </script>    
+
+</html>
