@@ -39,48 +39,105 @@
               <div class="container" id="nav_container">
                 <button class="brand btn btn-link shw" id="show_home">Pig with Websockets</button>
                 <!-- <button class="btn btn-success">Play</button> -->     
-                <div class="navbar-text pull-right" id="status">My Turn</div>
+                <div class="navbar-text pull-right" id="status"></div>
               </div>
             </nav>
           </div>
           <div id="home_view" class="row-fluid vw">
             <p class="lead">
+              Record: <span id="wins_count"></span> Wins | <span id="losses_count"></span> Losses<br>
               Two Dice Pig. <br> This variation is the same as Pig, except:
               <ul>
                 <li>Two standard dice are rolled. If neither shows a 1, their sum is added to the turn total.</li>
                 <li>If a 1 is rolled, the player scores nothing and the turn ends.</li>
               </ul>
             </p>
-              <button id="show_game" type="button" class="btn btn-large btn-block btn-primary shw">Play vs AI</button>
-<!--               <button type="button" class="btn btn-large btn-block">Ladder</button>
-              <button type="button" class="btn btn-large btn-block">Account</button> -->            
+              <button id="show_game" type="button" class="btn btn-large btn-block btn-primary shw">
+                Play vs AI
+              </button>
+              <!-- <button type="button" disabled="true" class="btn btn-large btn-block">Leaderboard</button> -->
+              <button id="show_my_games" type="button" class="btn btn-large btn-inverse btn-block shw">
+                Ladder
+              </button>
+              <button id="show_account" type="button" class="btn btn-large btn-inverse btn-block shw">
+                Account
+              </button>            
           </div>
           <div id="game_view" class="row-fluid vw" hidden="true">
-            <p>
-              My Points: <span id="my_total"></span>
-              Opponent's Points: <span id="opponents_points"></span></p>
-            <p>Rolled <span id='roll_result'></span></p>
-            <div id="dice_view_template">
-              <div class="well well-mini">
-                <h1 style="text-align: center;">
-                  <span style="font-size: 220px;">
-                    <span id="die1">&#9862;</span><span id="die2">&#9864;</span>
-                  </span>
-                </h1>
+            <div class="well well-mini">
+              <p>
+                My Points: <span id="my_total"></span>
+                <span id="opponents_name">Opponent</span>'s Points: <span id="opponents_total"></span></p>
+              <p>Rolled <span id='roll_result'></span></p>
+              <div id="dice_view_template">
+                <div class="well well-mini">
+                  <h1 style="text-align: center;">
+                    <span style="font-size: 220px;">
+                      <span id="die1">&#9862;</span><span id="die2">&#9864;</span>
+                    </span>
+                  </h1>
+                </div>
+              </div>
+              <div>
+                <button class="btn btn-success btn-large btn-block" id="do_roll">Roll</button>
+                <button class="btn btn-danger btn-large btn-block" disabled=true id="do_hold">Hold</button>
+              </div>
+              <div class="span4">
+                <p>
+                  <strong><span class="brand" id="turn_total_sum"></span></strong>
+                  <span class="brand" id="turn_total_parts"></span>
+                </p>
               </div>
             </div>
-            <div>
-              <button class="btn btn-success btn-large btn-block" id="do_roll">Roll</button>
-              <button class="btn btn-danger btn-large btn-block" id="do_hold">Hold</button>
-            </div>
-            <div class="span4">
-              <p>
-                <strong><span class="brand" id="turn_total_sum"></span></strong>
-                <span class="brand" id="turn_total_parts"></span>
-              </p>
+          </div>
+          <div id="my_games_view" class="row-fluid vw" hidden="true">
+            <button class='btn btn-success btn-block' id='do_findmatch'>Find Match</button>
+            <div class="well well-mini">
+              <ul class="unstyled">
+
+              </ul>
             </div>
           </div>
-          <div id="articles_view" class="row-fluid vw" hidden="true">
+          <div id="account_view" class="row-fluid vw" hidden="true">
+            <div class="form-horizontal">
+              <fieldset>
+                <div class="control-group">
+                  <label class="control-label" for="prependedInput">Display Name</label>
+                  <div class="controls">
+                    <input id="display_name" name="display_name" type="text" placeholder="for new accounts">
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset>
+                <div class="control-group">
+                  <label class="control-label" for="prependedInput">Email Address</label>
+                  <div class="controls">
+                    <input id="email" name="email" type="text" placeholder="to uniquely identify your account">
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset>
+                <div class="control-group">
+                  <label class="control-label" for="prependedInput">Password for Pig</label>
+                  <div class="controls">
+                    <input id="password" name="password" type="password">
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset>
+                <div class="control-group">
+                  <label class="control-label" for="prependedInput"></label>
+                  <div class="controls">
+                    <button class="btn btn-success" id='do_login'>Log in and/or Sign up
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+          <div id="messages">
+            <ul>
+              <li>Messages:</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -97,6 +154,7 @@
     -->
     <script type="text/javascript" src="js/lawnchair-adapter-webkit-sqlite.js"></script>
     <script type="text/javascript" src="js/bootstrap.js"></script>
+    <script src="js/socket.io.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
     <script type="text/javascript" src="start.js">
       app.initialize();
