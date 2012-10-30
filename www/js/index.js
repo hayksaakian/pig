@@ -42,6 +42,11 @@ var app = {
         // completeElem.className = completeElem.className.split('hide').join('');
         //testing out lawnchair.js
         $(function(e) {
+            //set presets, debug only, comment for production
+            var j = Math.floor(Math.random()*5)+1;
+            $('#email').val(j.toString()+'test@email.com');
+            $('#username').val(j.toString()+'derpy');
+            $('#password').val(j.toString()+'password');
             //db
             var lawnchair = Lawnchair({name:'lawnchair'},function(e){
                 console.log('storage open');
@@ -69,11 +74,13 @@ var app = {
                         db.save({key:'local_stats', value:ls})
                     }
                 });
-                db.get('credentials', function(data){
-                  var cred = data.value;
-                  socket.emit('log_in', data);
-                  console.log('trying log_in');
-                })
+                // db.get('credentials', function(data){
+                //   if(data != null){
+                //     var cred = data.value;
+                //     socket.emit('log_in', cred);
+                //     console.log('trying log_in');
+                //   }
+                // });
             }
             var games_db = Lawnchair({name:'games_db'},function(e){
               console.log('games db open');
@@ -100,42 +107,28 @@ var app = {
             socket.on('create_game', function(data){
               console.log(data);
               //created game on the server, do something with that info
-              games_db.save({key:data['id'], value:data});
+              games_db.save({key:data['game_id'], value:data});
               //consider a separate game list
-              $('#my_games_view').find('ul').append('<li><button class="btn btn-block btn-large btn-primary shw" id=\'show_game_'+data['game_id']+'\'> A Challenger Appears! '+data['opponent_name']+'!</button></li>');
-              //create the game view
-              $('#my_games_view').find('button').last().click(function(e){
-                var id = $(this).attr("id");
-                var vname = id.replace("show_", "");
-                // vname = "#"+vname + "_view";
-                //for now we're just manipulating the game_view
-                //this should prolly be different somehow though
-                vname = "#game_view";
-                $(".vw").hide();                
-                $(vname).show();
-                console.log(vname);
-                var game_id = id.replace('show_game_', '');
-                games_db.get(game_id, function(data){
-                  var game_data = data.value;
-                  $('#opponents_name').text(game_data['opponent_name']);
-                });
-              });
+              $('#my_games_view').find('ul').append('<li><button class="btn btn-block btn-large btn-primary shw" id=\'show_game_'+data['game_id']+'\'> A Challenger Appears! '+data['opponents_name']+'!</button></li>');
             });
             socket.on('start_turn', function(game_id){
-              console.log(game_id);
+              console.log('start_turn '+game_id.toString());
               if(active_game_id == null || active_game_id == game_id){
                 active_game_id = game_id;
                 isMyTurn = true;
+                take_player_turn();
+                $('#status').text('my turn');
                 //notify that it's the user's turn 
               }else{
                 //notify the user that this game is ready for them to take their turn
               }
             });
             socket.on('end_turn', function(game_id){
-              console.log(game_id);
+              console.log('end_turn '+game_id.toString());
               if(active_game_id == null || active_game_id == game_id){
                 active_game_id = game_id;
-                isMyTurn = true;
+                isMyTurn = false;
+                $('#status').text('opponent\'s turn');
                 //show that it's the other person who has to act, that they're taking their turn
               }else{
                 //notify that they're waiting for the opponent to make a move
@@ -151,15 +144,15 @@ var app = {
                 $('#die1').html(dice_faces[data["first"]]);
                 $('#die2').html(dice_faces[data["second"]]);
                 $('#roll_result').text(data["roll_result"] + ' = ' + data["first"].toString()+' + '+data["second"].toString());
-                update_ui_post_roll(the_roll);
+                update_ui_post_roll(data);
                 if(data['roller'] == true){
-                  //
+                  //enable buttans
                   $('#do_hold').attr('disabled', false);
+                  $('#do_roll').attr('disabled', false);
                 }else if(data['roller'] == false){
-                  //
-                  //may not be neccesary
-                  //$('#do_hold').attr('disabled', true);
-                  //$('#do_roll').attr('disabled', true);
+                  //disable buttans
+                  $('#do_hold').attr('disabled', true);
+                  $('#do_roll').attr('disabled', true);
                 }
               }else{
                 //update game data in the background, and allow user to respond
@@ -193,22 +186,35 @@ var app = {
             //view controls
             $(document).on("click", '.shw', function(e){
               var id = $(this).attr("id");
-              var vname = id.replace("show_", "");
-              vname = "#"+vname + "_view";
-              $(".vw").hide();                
-              $(vname).show();
-              console.log(vname);
+              console.log('showing '+id);
+              //show_game_X views have different behaviors
+              if(id.indexOf('show_game_') == -1){
+                var vname = id.replace("show_", "");
+                vname = "#"+vname + "_view";
+                $(".vw").hide();
+                $(vname).show();
+              }else{
+                $(this).attr('disabled', true);
+                var game_id = id.replace('show_game_', '');
+                console.log(game_id);
+                games_db.get(game_id, function(data){
+                  var game_data = data.value;
+                  console.log(data);
+                  $('#opponents_name').text(game_data['opponents_name']);
+                  $(".vw").hide();
+                  $('#game_view').show();
+                });
+              }
             });
             $(document).on('click', '#do_login', function(e){
               var bt = $(this);
               bt.attr('disabled', true);
-
               var data = {}
               data['email'] = $('#email').val();
-              data['username'] = $('#display_name').val();
+              data['username'] = $('#username').val();
               data['password'] = $('#password').val();
               //do null checking, validate existence of all above
-              
+              socket.emit('log_in', data);
               lawnchair.save({key:'credentials', value:data});
               setTimeout(function(){
                 bt.attr('disabled', false);
@@ -237,43 +243,50 @@ var app = {
                 reset_game();
             });
             function between_turn(){
-                $('#turn_total_sum').text('');
-                $('#turn_total_parts').text('');
-                results_this_turn = [];
-                //check win/loss state here
-                if(my_total >= 100 || opponents_total >= 100){
-                    if(my_total >= 100){
-                        //set player won
-                        lawnchair.get('local_stats', function(obj){
-                            var ls = obj.value;
-                            ls["vs_ai"]["wins"] = ls["vs_ai"]["wins"] + 1;
-                            $('#wins_count').text(ls["vs_ai"]["wins"]);
-                            lawnchair.save({key:obj.key, value:ls});
-                        });
-                        alert('you won');
-                    }else if(opponents_total >= 100){
-                        //set opponent won
-                        lawnchair.get('local_stats', function(obj){
-                            var ls = obj.value;
-                            ls["vs_ai"]["losses"] = ls["vs_ai"]["losses"] + 1;
-                            $('#losses_count').text(ls["vs_ai"]["losses"]);
-                            lawnchair.save({key:obj.key, value:ls});
-                        });
-                        alert('you lost');
-                    }
-                }else{
-                    //no winner yet
-                    isMyTurn = (isMyTurn == false);
-                    if(isMyTurn){
-                        console.log('player\'s turn');
-                        $('#status').text('player\'s turn');
-                        take_player_turn();
-                    }else{
-                        console.log("opponent\'s turn");
-                        $('#status').text('opponent\'s turn');
-                        take_ai_turn();
-                    }
+              $('#turn_total_sum').text('');
+              $('#turn_total_parts').text('');
+              results_this_turn = [];
+              //check win/loss state here
+              if(my_total >= 100 || opponents_total >= 100){
+                if(my_total >= 100){
+                  //set player won
+                  if(active_game_id == null){
+                    lawnchair.get('local_stats', function(obj){
+                      var ls = obj.value;
+                      ls["vs_ai"]["wins"] = ls["vs_ai"]["wins"] + 1;
+                      $('#wins_count').text(ls["vs_ai"]["wins"]);
+                      lawnchair.save({key:obj.key, value:ls});
+                    });
+                  }
+                  alert('you won');
+                }else if(opponents_total >= 100){
+                  //set opponent won
+                  if(active_game_id == null){
+                    lawnchair.get('local_stats', function(obj){
+                      var ls = obj.value;
+                      ls["vs_ai"]["losses"] = ls["vs_ai"]["losses"] + 1;
+                      $('#losses_count').text(ls["vs_ai"]["losses"]);
+                      lawnchair.save({key:obj.key, value:ls});
+                    });
+                  }
+                  alert('you lost');
                 }
+              }else{
+                //no winner yet
+                if(active_game_id == null){
+                  //change turns
+                  isMyTurn = (isMyTurn == false);
+                  if(isMyTurn){
+                    console.log('player\'s turn');
+                    $('#status').text('player\'s turn');
+                    take_player_turn();
+                  }else{
+                    console.log("opponent\'s turn");
+                    $('#status').text('opponent\'s turn');
+                    take_ai_turn();
+                  }
+                }
+              }
             }
             function take_ai_turn(){
                 $('button').attr('disabled', true);
@@ -307,12 +320,6 @@ var app = {
               opponents_total = total + opponents_total;
               console.log(opponents_total);
               $('#opponents_total').text(opponents_total.toString());
-              between_turn();
-            }
-            function do_player_hold(){
-              var total = turn_total(results_this_turn);
-              my_total = total + my_total;
-              $('#my_total').text(my_total.toString());
               between_turn();
             }
             function take_player_turn(){
@@ -351,17 +358,31 @@ var app = {
               $('#turn_total_sum').text('Total: '+total.toString());
             }
             $(document).on("click", '#do_roll', function(e){
-              var the_roll = roll();
-              if(the_roll["bust"] == false){
-                update_ui_post_roll(the_roll);
-                $('#do_hold').attr('disabled', false);
-              }else if(the_roll["bust"] == true){
-                //change turn
-                between_turn();
+              if(active_game_id == null){
+                var the_roll = roll();
+                if(the_roll["bust"] == false){
+                  update_ui_post_roll(the_roll);
+                  $('#do_hold').attr('disabled', false);
+                }else if(the_roll["bust"] == true){
+                  //change turn
+                  between_turn();
+                }
+              }else{
+                //we're in a multiplayer game, what do...
+                socket.emit('roll', active_game_id);
+                $(this).attr('disabled', true);
               }
             });
             $(document).on("click", '#do_hold', function(e){
-              do_player_hold();
+              var total = turn_total(results_this_turn);
+              my_total = total + my_total;
+              $('#my_total').text(my_total.toString());
+              if(active_game_id == null){
+                between_turn();
+              }else{
+                $(this).attr('disabled', true);
+                socket.emit('hold', active_game_id);
+              }
             });
         }); // end lawnchair shit and jquery block
     } //done with report

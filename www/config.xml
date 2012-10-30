@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <widget xmlns     = "http://www.w3.org/ns/widgets"
         xmlns:gap = "http://phonegap.com/ns/1.0"
-        id        = "com.extempengine.app"
-        version   = "1.5.3">
-    <name>ExtempEngine</name>
+        id        = "com.pigwithwebsockets.app"
+        version   = "1.0.0">
+    <name>Pig with Websockets</name>
 
     <description>
-        Virtual extemp box and index. Auto-updates. Offline optimized.
+        The dice game of pig, multiplayer with websockets
     </description>
 
-    <author href="http://extempengine.com" email="hayk.saakian@gmail.com">
+    <author href="http://twitter.com/hayksaakian" email="hayk.saakian@gmail.com">
         Hayk Saakian
     </author>
 
